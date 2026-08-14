@@ -17,7 +17,7 @@ The primary learning arc is: `model.generate()` → Python + FastAPI → dedicat
 ## Active Sprints
 
 - [Sprint 1](docs/sprint-plans/sprint-1.md) - *Status: Complete* — Scaffolding
-- [Sprint 2](docs/sprint-plans/sprint-2.md) - *Status: Not Started* — Baseline FastAPI server
+- [Sprint 2](docs/sprint-plans/sprint-2.md) - *Status: Complete* — Baseline FastAPI server
 - [Sprint 3](docs/sprint-plans/sprint-3.md) - *Status: Not Started* — vLLM server
 - [Sprint 4](docs/sprint-plans/sprint-4.md) - *Status: Not Started* — Ollama server
 - [Sprint 5](docs/sprint-plans/sprint-5.md) - *Status: Not Started* — Client layer
@@ -27,6 +27,7 @@ The primary learning arc is: `model.generate()` → Python + FastAPI → dedicat
 ## Completed Sprints
 
 - [Sprint 1](docs/sprint-plans/sprint-1.md) - *Complete* — Scaffolding
+- [Sprint 2](docs/sprint-plans/sprint-2.md) - *Complete* — Baseline FastAPI server
 
 ## Backlog / Future Work
 

@@ -1,0 +1,9 @@
+# Baseline FastAPI server dependencies
+#
+# Pinned for reproducibility. This educational baseline manually loads the
+# model with Hugging Face Transformers and serves it behind FastAPI + Uvicorn
+# (docs/04 §4). CPU-friendly enough for small demo models.
+fastapi==0.141.1
+uvicorn==0.52.3
+transformers==5.15.0
+torch==2.13.0
