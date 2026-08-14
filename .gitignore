@@ -1,0 +1,29 @@
+# Task artifacts (per implement-atomic-task skill) are never committed
+artifacts/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files (real values, not the committed .env.example)
+.env
+.env.*
+!.env.example
+
+# Benchmark results
+benchmarks/results/
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
