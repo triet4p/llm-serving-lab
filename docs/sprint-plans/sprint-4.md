@@ -6,9 +6,9 @@ Provide the Ollama serving backend as an alternative OpenAI-compatible endpoint 
 ## Atomic Tasks
 Status legend: [ ] pending / [~] in progress / [x] done
 
-- [ ] Task 1: Create `servers/ollama/Modelfile` defining the model and its serving parameters.
-- [ ] Task 2: Create `servers/ollama/run.sh` that creates the model from the Modelfile and starts `ollama serve`.
-- [ ] Task 3: Create `servers/ollama/README.md` explaining prerequisites and how to start the server.
+- [x] Task 1: Create `servers/ollama/Modelfile` defining the model and its serving parameters.
+- [x] Task 2: Create `servers/ollama/run.sh` that creates the model from the Modelfile and starts `ollama serve`.
+- [x] Task 3: Create `servers/ollama/README.md` explaining prerequisites and how to start the server.
 
 ## Notes / Blockers
 - Ollama's role is backend interchangeability, not throughput (docs 02 §4.3).

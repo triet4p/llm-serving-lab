@@ -1,0 +1,17 @@
+# Ollama Modelfile for the LLM Serving Lab
+#
+# Defines the model served by the Ollama backend and its serving parameters.
+# run.sh creates the model named $MODEL_NAME from this file with
+# `ollama create`, so the model tag below must match what clients send as
+# MODEL_NAME (see profiles/ollama.env).
+
+FROM qwen3:8b
+
+# Context window size in tokens available during generation.
+PARAMETER num_ctx 4096
+
+# Default sampling temperature.
+PARAMETER temperature 0.7
+
+# Maximum number of tokens to generate per request.
+PARAMETER num_predict 2048
