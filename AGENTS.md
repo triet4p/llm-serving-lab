@@ -9,6 +9,15 @@ Before working, load and follow the shared rules and skills located outside this
 
 Use the skill loader when a task matches an available skill.
 
+## Project memory
+
+Before working, read the append-only memory logs and follow any decisions or lessons recorded there:
+
+- Decisions: `.agents/memory/decisions.md` — deliberate choices (library picks, API contracts, trade-offs) that must not be reversed without explicit instruction.
+- Lessons learned: `.agents/memory/lessons-learned.md` — bugs, quirks, and non-obvious traps discovered in this repo.
+
+When a task matches, log new entries per the `log-decision` and `log-lesson` skills.
+
 ## Project state
 
 This repository is in the planning phase: `docs/` contains the design documents and nothing else.
