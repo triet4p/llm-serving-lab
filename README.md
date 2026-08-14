@@ -6,11 +6,51 @@ The project separates **model serving** from **model consumption**: the same cli
 
 ## Status
 
-This repository is in the planning phase. The `docs/` directory contains the design documents; no application code exists yet.
+Sprint 1 (scaffolding) is complete: repository layout, configuration profiles, environment template, and Makefile convenience commands are in place. Serving backends (Sprint 2-4), the client layer (Sprint 5), and benchmarks (Sprint 6) follow.
 
-## Getting Started
+## Prerequisites
 
-Coming soon. The docs below define the intended architecture and the planned layout.
+- Python 3.11+ and [uv](https://docs.astral.sh/uv/) for running tests.
+- One or more of the serving backends (vLLM, Ollama) — see each sprint plan for install details.
+- A NVIDIA GPU for vLLM; Ollama and the baseline server run on CPU.
+
+## Configuration
+
+Configuration is backend-neutral through three shared variables:
+
+| Variable | Meaning |
+|---|---|
+| `OPENAI_BASE_URL` | OpenAI-compatible API base URL (includes `/v1`) |
+| `OPENAI_API_KEY` | API key (self-hosted backends usually accept `demo`) |
+| `MODEL_NAME` | Model served by the selected backend |
+
+- `.env.example` documents the contract; copy it to `.env` to override defaults.
+- `configs/models.env` holds the default model; `configs/endpoints.env` holds each backend's base URL.
+- `profiles/*.env` hold backend-specific values. The Makefile sources the shared config plus a profile before running any command.
+
+## Running the backends
+
+The Makefile sources the relevant profile for you:
+
+```bash
+make serve-baseline   # baseline FastAPI server
+make serve-vllm       # vLLM server
+make serve-ollama     # Ollama server
+```
+
+The actual server runners are implemented in Sprints 2-4; until then the targets print the effective `OPENAI_BASE_URL` / `MODEL_NAME`.
+
+## Using the clients
+
+Clients are backend-neutral: point any OpenAI-compatible client at `OPENAI_BASE_URL` with `API_KEY` and `MODEL_NAME`, and the same code works against every backend. Concrete client examples (`clients/`) land in Sprint 5.
+
+## Development
+
+Run the test suite:
+
+```bash
+uv run pytest -v
+```
 
 ## Documentation
 
@@ -18,3 +58,4 @@ Coming soon. The docs below define the intended architecture and the planned lay
 - [02 - Project Architecture](docs/02-project-architecture.md)
 - [03 - Project Scope](docs/03-project-scope.md)
 - [04 - Technical Stack](docs/04-project-technical-stack.md)
+- [Global Project Plan](docs/PLAN.md)
