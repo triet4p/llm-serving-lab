@@ -28,4 +28,5 @@ def test_benchmarks_send_chat_template_kwargs_only_when_forced():
 def test_baseline_accepts_chat_template_kwargs():
     text = APP.read_text(encoding="utf-8")
     assert "chat_template_kwargs: dict | None = None" in text
-    assert "chat_template_kwargs=request.chat_template_kwargs" in text
+    assert "template_kwargs = request.chat_template_kwargs or {}" in text
+    assert "**template_kwargs" in text
