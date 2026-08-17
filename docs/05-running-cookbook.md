@@ -105,8 +105,9 @@ Endpoint: `http://<host>:8000/v1` (e.g. `POST /v1/chat/completions`,
 
 ### 2.3 Ollama (CPU, alternative backend)
 
-Shows backend interchangeability with a lightweight local engine (docs 04 §5).
-CPU only; requires [Ollama](https://ollama.com/download) installed.
+Shows backend interchangeability with a lightweight engine running on the same
+server box as vLLM (docs 04 §5). CPU-friendly; requires
+[Ollama](https://ollama.com/download) installed on the server.
 
 ```bash
 # start: launches the daemon, creates the model from the Modelfile
@@ -130,9 +131,9 @@ Endpoint: `http://<host>:11434/v1` (e.g. `POST /v1/chat/completions`,
 
 | Backend | Prereq | Config file | Start command | Default endpoint |
 |---|---|---|---|---|
-| Baseline FastAPI | GPU server, pinned pip deps | `profiles/baseline.env` | `bash servers/baseline-fastapi/run.sh` | `http://0.0.0.0:8080/v1` (client URL `http://192.168.30.244:8080/v1`) |
-| vLLM | Linux + NVIDIA GPU + vLLM | `servers/vllm/config.env` | `bash servers/vllm/run.sh` | `http://0.0.0.0:8000/v1` |
-| Ollama | Ollama installed | `servers/ollama/Modelfile` | `bash servers/ollama/run.sh` | `http://0.0.0.0:11434/v1` |
+| Baseline FastAPI | GPU server, pinned pip deps | `profiles/baseline.env` | `bash servers/baseline-fastapi/run.sh` | bind `0.0.0.0:8080`; client URL `http://192.168.30.244:8080/v1` |
+| vLLM | Linux + NVIDIA GPU + vLLM | `servers/vllm/config.env` | `bash servers/vllm/run.sh` | bind `0.0.0.0:8000`; client URL `http://192.168.30.244:8000/v1` |
+| Ollama | Ollama installed | `servers/ollama/Modelfile` | `bash servers/ollama/run.sh` | bind `0.0.0.0:11434`; client URL `http://192.168.30.244:11434/v1` |
 
 > **Note on the Makefile:** `make serve-baseline|serve-vllm|serve-ollama`
 > currently only print the effective `OPENAI_BASE_URL` / `MODEL_NAME`; they do
@@ -220,17 +221,20 @@ lists every option.
 
 ## 5. End-to-end walkthrough
 
-### 5.1 Against a local backend (vLLM or Ollama)
+### 5.1 Against a server backend (vLLM or Ollama)
+
+The profiles already point at the server host, so sourcing one is enough — no
+manual env exports needed.
 
 ```bash
-# 1. start the backend
+# 1. start the backend (on the server box)
 bash servers/vllm/run.sh              # or bash servers/ollama/run.sh
 
-# 2. in another terminal, point at it
+# 2. on the developer machine, load the matching profile
 set -a; source profiles/vllm.env; set +a
 
-# 3. verify it is up
-curl http://localhost:8000/v1/models
+# 3. verify it is up (uses the profile's OPENAI_BASE_URL)
+curl $OPENAI_BASE_URL/models
 
 # 4. consume it
 uv run clients/openai-sdk/chat_completions.py

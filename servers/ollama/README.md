@@ -11,8 +11,9 @@ across serving implementations (docs/02 §4.3, docs/04 §5).
   Linux, macOS, or Windows. Ollama runs on CPU, so **no GPU is required**.
 - **`curl`** for the smoke test.
 
-The developer machine runs Ollama locally and sends HTTP requests to it; no
-separate GPU server is needed for this backend.
+The developer machine only sends HTTP requests to the server; Ollama itself
+runs on the same server box as the other backends. No GPU is needed for this
+backend (Ollama is CPU-friendly).
 
 ## Configuration
 
@@ -28,7 +29,8 @@ The model and its serving parameters live in `servers/ollama/Modelfile`:
 The model tag created from the Modelfile matches `MODEL_NAME` in
 `profiles/ollama.env` (`qwen3:8b`), so clients address it by that name. The
 OpenAI-compatible base URL comes from the same profile:
-`OPENAI_BASE_URL=http://localhost:11434/v1`.
+`OPENAI_BASE_URL=http://192.168.30.244:11434/v1` (the server host; adjust if
+your server's address differs).
 
 Optional overrides (export before running):
 

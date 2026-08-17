@@ -268,10 +268,11 @@ Switching backend should require as little application change as possible.
 
 ## 7. Deployment Topology
 
-The preferred demo topology is a two-machine setup.
+The preferred demo topology is a two-machine setup: all serving backends run
+on the GPU server, and the developer machine acts as a thin HTTP-only client.
 
 ```text
-Developer Laptop
+Developer Laptop (client only)
       |
       | HTTP
       |
@@ -286,9 +287,11 @@ GPU Server
 +------------------------------+
 ```
 
-The baseline FastAPI server runs on the GPU server as well: it loads the model
-with Hugging Face Transformers + torch, so it needs the same GPU box that
-serves vLLM (not the developer machine).
+Every backend in this repo — vLLM, Ollama, and the baseline FastAPI server —
+runs on the **same GPU server**. The baseline needs the GPU box because it
+loads the model with Hugging Face Transformers + torch; vLLM runs on the GPU
+by design; Ollama is CPU-only but is co-located on the same server box for a
+single demo environment.
 
 This setup demonstrates that the inference server is a network service rather than simply a local Python library.
 

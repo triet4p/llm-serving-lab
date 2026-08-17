@@ -99,6 +99,9 @@ outputs = model.generate(...)
 
 This stack provides the educational baseline against which vLLM can be compared.
 
+Because it loads the model with Transformers + torch, the baseline runs on the
+GPU server (the same box that serves vLLM), not on the developer machine.
+
 ## 5. Alternative Serving Backend
 
 ### Ollama
@@ -112,6 +115,9 @@ Its main purposes are:
 - show how API compatibility reduces client coupling.
 
 The project should avoid making Ollama-specific logic a dependency of generic clients.
+
+Ollama is CPU-friendly but in this repo it is co-located on the same server
+box as the other backends, so clients reach all three at the server host.
 
 ## 6. Client Stack
 
@@ -269,7 +275,8 @@ Model selection should be configurable rather than hard-coded into client logic.
 
 ### GPU Server
 
-Primary inference environment.
+Primary inference environment and the home of **every** serving backend in this
+repo (vLLM, Ollama, baseline-fastapi).
 
 Typical requirements:
 

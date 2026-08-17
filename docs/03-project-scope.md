@@ -36,6 +36,9 @@ The project should demonstrate:
 - serving the model from a GPU server;
 - querying the server remotely from another machine.
 
+All serving backends run on the **same GPU server**; the developer machine only
+sends HTTP requests to it.
+
 ### 2.3 API Interfaces
 
 The project may demonstrate the following API styles:
@@ -97,7 +100,7 @@ The repository may include helper scripts for:
 
 ### Scenario 1 — Manual Baseline
 
-Start a custom FastAPI server wrapping a model.
+Start a custom FastAPI server wrapping a model (on the GPU server).
 
 Goal:
 
@@ -105,7 +108,7 @@ Show the amount of application code required when building the serving layer man
 
 ### Scenario 2 — vLLM Serving
 
-Start the same or comparable model with vLLM.
+Start the same or comparable model with vLLM (on the GPU server).
 
 Goal:
 
