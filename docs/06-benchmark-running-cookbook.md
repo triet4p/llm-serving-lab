@@ -92,6 +92,8 @@ Add `--no-save` to print only and skip writing files.
 | all | `--no-save` | off | skip writing JSON/CSV results |
 | all | `--prompt` | one-sentence explanation | user prompt to send |
 | all | `--max-tokens` | 128 | `max_tokens` per request |
+| all | `--thinking` | `auto` | `chat_template_kwargs.enable_thinking`: `on`/`off` forces it, `auto` sends nothing |
+| all | `--timeout` | 0 | per-request timeout in seconds (`0` = no timeout; raise it for slow backends / long reasoning) |
 | `latency.py` | `--iterations` | 10 | number of requests to run |
 | `concurrency.py` | `--requests` | 8 | total requests to fire |
 | `concurrency.py` | `--concurrency` | 4 | requests in parallel |

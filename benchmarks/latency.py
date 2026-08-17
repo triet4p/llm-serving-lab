@@ -155,6 +155,12 @@ def main() -> None:
         help="send chat_template_kwargs enable_thinking (on/off) or none (auto)",
     )
     parser.add_argument(
+        "--timeout",
+        type=int,
+        default=0,
+        help="per-request timeout in seconds (0 = no timeout)",
+    )
+    parser.add_argument(
         "--no-save",
         action="store_true",
         help="skip writing JSON/CSV results to benchmarks/results/",
@@ -187,7 +193,7 @@ def main() -> None:
         payload["chat_template_kwargs"] = {"enable_thinking": args.thinking == "on"}
 
     results = []
-    with httpx.Client(timeout=120.0) as client:
+    with httpx.Client(timeout=args.timeout or None) as client:
         for i in range(args.iterations):
             results.append(send_request(client, url, headers, payload))
             print(f"  request {i + 1}/{args.iterations} done", end="\r")

@@ -18,6 +18,14 @@ def test_benchmarks_offer_thinking_flag():
         assert 'args.thinking == "on"' in text
 
 
+def test_benchmarks_offer_configurable_timeout():
+    for script in SCRIPTS:
+        text = script.read_text(encoding="utf-8")
+        assert "--timeout" in text
+        assert "0 = no timeout" in text
+        assert "timeout or None" in text
+
+
 def test_benchmarks_send_chat_template_kwargs_only_when_forced():
     for script in SCRIPTS:
         text = script.read_text(encoding="utf-8")

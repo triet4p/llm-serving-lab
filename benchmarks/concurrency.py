@@ -99,13 +99,13 @@ async def send_request(
 
 
 async def run_batch(
-    url: str, headers: dict, payload: dict, requests: int, concurrency: int
+    url: str, headers: dict, payload: dict, requests: int, concurrency: int, timeout: int = 0
 ) -> list[dict]:
     sem = asyncio.Semaphore(concurrency)
 
     async def bounded() -> dict:
         async with sem:
-            async with httpx.AsyncClient(timeout=120.0) as client:
+            async with httpx.AsyncClient(timeout=timeout or None) as client:
                 return await send_request(client, url, headers, payload)
 
     return list(await asyncio.gather(*(bounded() for _ in range(requests))))
@@ -149,6 +149,12 @@ def main() -> None:
         help="send chat_template_kwargs enable_thinking (on/off) or none (auto)",
     )
     parser.add_argument(
+        "--timeout",
+        type=int,
+        default=0,
+        help="per-request timeout in seconds (0 = no timeout)",
+    )
+    parser.add_argument(
         "--no-save",
         action="store_true",
         help="skip writing JSON/CSV results to benchmarks/results/",
@@ -182,7 +188,7 @@ def main() -> None:
 
     start = time.perf_counter()
     results = asyncio.run(
-        run_batch(url, headers, payload, args.requests, args.concurrency)
+        run_batch(url, headers, payload, args.requests, args.concurrency, args.timeout)
     )
     wall = time.perf_counter() - start
 
