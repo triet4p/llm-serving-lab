@@ -14,9 +14,9 @@ def test_results_directory_exists():
     assert (RESULTS_DIR / ".gitkeep").is_file(), "benchmarks/results/.gitkeep must exist"
 
 
-def test_results_directory_is_gitignored():
+def test_results_directory_is_not_gitignored():
     gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
-    assert "benchmarks/results/" in gitignore
+    assert "benchmarks/results/" not in gitignore
 
 
 def test_all_benchmarks_save_json_results():

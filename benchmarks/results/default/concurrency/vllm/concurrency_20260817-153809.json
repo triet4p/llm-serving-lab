@@ -1,0 +1,176 @@
+{
+  "summary": {
+    "model": "Qwen/Qwen3.5-2B",
+    "endpoint": "http://192.168.30.244:8081/v1/chat/completions",
+    "requests": 20,
+    "concurrency": 3,
+    "wall_time_s": 110.45043630013242,
+    "requests_per_second": 0.18107669530297746,
+    "tokens_per_second": 185.42253599024892,
+    "latency_min_s": 15.524628499988467,
+    "latency_mean_s": 15.757496780040674,
+    "latency_max_s": 15.843290800228715
+  },
+  "requests": [
+    {
+      "total_time": 15.843290800228715,
+      "time_to_first_token": 0.14537520008161664,
+      "generation_time": 15.697915600147098,
+      "tokens": 1024,
+      "tokens_per_second": 65.23159036416303,
+      "label": "default"
+    },
+    {
+      "total_time": 15.82764710020274,
+      "time_to_first_token": 0.12907200027257204,
+      "generation_time": 15.698575099930167,
+      "tokens": 1024,
+      "tokens_per_second": 65.22884997406899,
+      "label": "default"
+    },
+    {
+      "total_time": 15.80205520009622,
+      "time_to_first_token": 0.11140800034627318,
+      "generation_time": 15.690647199749947,
+      "tokens": 1024,
+      "tokens_per_second": 65.26180768479193,
+      "label": "default"
+    },
+    {
+      "total_time": 15.784185499884188,
+      "time_to_first_token": 0.09077219991013408,
+      "generation_time": 15.693413299974054,
+      "tokens": 1024,
+      "tokens_per_second": 65.25030472508443,
+      "label": "default"
+    },
+    {
+      "total_time": 15.801726700272411,
+      "time_to_first_token": 0.08382590021938086,
+      "generation_time": 15.71790080005303,
+      "tokens": 1024,
+      "tokens_per_second": 65.1486488575208,
+      "label": "default"
+    },
+    {
+      "total_time": 15.775319299660623,
+      "time_to_first_token": 0.07259489968419075,
+      "generation_time": 15.702724399976432,
+      "tokens": 1024,
+      "tokens_per_second": 65.21161385227757,
+      "label": "default"
+    },
+    {
+      "total_time": 15.756781100295484,
+      "time_to_first_token": 0.0737373000010848,
+      "generation_time": 15.6830438002944,
+      "tokens": 1024,
+      "tokens_per_second": 65.29344769035062,
+      "label": "default"
+    },
+    {
+      "total_time": 15.759443199727684,
+      "time_to_first_token": 0.06652939971536398,
+      "generation_time": 15.69291380001232,
+      "tokens": 1024,
+      "tokens_per_second": 65.2523816194795,
+      "label": "default"
+    },
+    {
+      "total_time": 15.742444499861449,
+      "time_to_first_token": 0.05064600007608533,
+      "generation_time": 15.691798499785364,
+      "tokens": 1024,
+      "tokens_per_second": 65.25701945599202,
+      "label": "default"
+    },
+    {
+      "total_time": 15.77257760008797,
+      "time_to_first_token": 0.08883359981700778,
+      "generation_time": 15.683744000270963,
+      "tokens": 1024,
+      "tokens_per_second": 65.29053266760212,
+      "label": "default"
+    },
+    {
+      "total_time": 15.772852499969304,
+      "time_to_first_token": 0.0827415999956429,
+      "generation_time": 15.69011089997366,
+      "tokens": 1024,
+      "tokens_per_second": 65.26403838240041,
+      "label": "default"
+    },
+    {
+      "total_time": 15.776326400227845,
+      "time_to_first_token": 0.07206750009208918,
+      "generation_time": 15.704258900135756,
+      "tokens": 1024,
+      "tokens_per_second": 65.20524187175417,
+      "label": "default"
+    },
+    {
+      "total_time": 15.788973500020802,
+      "time_to_first_token": 0.09513079980388284,
+      "generation_time": 15.69384270021692,
+      "tokens": 1024,
+      "tokens_per_second": 65.24851940728617,
+      "label": "default"
+    },
+    {
+      "total_time": 15.760351699776947,
+      "time_to_first_token": 0.07507439982146025,
+      "generation_time": 15.685277299955487,
+      "tokens": 1024,
+      "tokens_per_second": 65.28415025234561,
+      "label": "default"
+    },
+    {
+      "total_time": 15.761083099991083,
+      "time_to_first_token": 0.06817640038207173,
+      "generation_time": 15.692906699609011,
+      "tokens": 1024,
+      "tokens_per_second": 65.25241114353359,
+      "label": "default"
+    },
+    {
+      "total_time": 15.789888499770314,
+      "time_to_first_token": 0.09513199981302023,
+      "generation_time": 15.694756499957293,
+      "tokens": 1024,
+      "tokens_per_second": 65.24472042639123,
+      "label": "default"
+    },
+    {
+      "total_time": 15.790239500347525,
+      "time_to_first_token": 0.0878679002635181,
+      "generation_time": 15.702371600084007,
+      "tokens": 1024,
+      "tokens_per_second": 65.213079022695,
+      "label": "default"
+    },
+    {
+      "total_time": 15.793062800075859,
+      "time_to_first_token": 0.07647339999675751,
+      "generation_time": 15.716589400079101,
+      "tokens": 1024,
+      "tokens_per_second": 65.15408489292507,
+      "label": "default"
+    },
+    {
+      "total_time": 15.52705810032785,
+      "time_to_first_token": 0.07243000017479062,
+      "generation_time": 15.454628100153059,
+      "tokens": 1024,
+      "tokens_per_second": 66.2584692018476,
+      "label": "default"
+    },
+    {
+      "total_time": 15.524628499988467,
+      "time_to_first_token": 0.06413019960746169,
+      "generation_time": 15.460498300381005,
+      "tokens": 1024,
+      "tokens_per_second": 66.2333115081268,
+      "label": "default"
+    }
+  ]
+}

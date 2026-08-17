@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "total_time": 15.085293999873102,
+    "time_to_first_token": 0.12206560000777245,
+    "generation_time": 14.96322839986533,
+    "tokens": 1024,
+    "tokens_per_second": 68.43442956529462,
+    "label": "default"
+  },
+  "requests": [
+    {
+      "total_time": 15.085293999873102,
+      "time_to_first_token": 0.12206560000777245,
+      "generation_time": 14.96322839986533,
+      "tokens": 1024,
+      "tokens_per_second": 68.43442956529462,
+      "label": "default"
+    }
+  ]
+}

@@ -2,19 +2,18 @@
 # /// script
 # requires-python = ">=3.11"
 # ///
-"""Aggregate benchmark results into a per-type report.
+"""Aggregate benchmark results into a markdown report.
 
-Scans a results directory for the three benchmark types
-(`single_request_*.json`, `latency_*.json`, `concurrency_*.json`), groups them
-by type, and prints an aggregated markdown report. Works with any dataset:
-per-request rows that carry a `label` (e.g. the multi-length dataset's
-short/medium/long prompts) are also aggregated per label.
+Reads the results tree <results>/<dataset>/<type>/<backend>/<type>_<timestamp>.json
+(flat files are also accepted), groups by dataset/type/backend, and prints a
+comparison report: one backend table per benchmark type per dataset, plus a
+per-label breakdown (e.g. short/medium/long) built from the per-request rows.
 
 Usage:
 
     uv run benchmarks/aggregate_report.py
-    uv run benchmarks/aggregate_report.py --results-dir results/multi-length
-    uv run benchmarks/aggregate_report.py --output report.md
+    uv run benchmarks/aggregate_report.py --results-dir benchmarks/results
+    uv run benchmarks/aggregate_report.py --output benchmarks/results/report.md
 """
 
 import argparse
@@ -26,17 +25,7 @@ from pathlib import Path
 TYPES = ("single_request", "latency", "concurrency")
 
 
-def collect_runs(results_dir: Path, bench_type: str) -> list[tuple[Path, dict]]:
-    runs = []
-    for path in sorted(results_dir.glob(f"{bench_type}_*.json")):
-        try:
-            runs.append((path, json.loads(path.read_text(encoding="utf-8"))))
-        except json.JSONDecodeError:
-            continue
-    return runs
-
-
-def mean(values: list[float]) -> float:
+def mean(values: list) -> float:
     return statistics.fmean(values) if values else float("nan")
 
 
@@ -79,60 +68,79 @@ def run_metrics(bench_type: str, summary: dict) -> dict[str, float]:
     return {}
 
 
-def per_label(runs: list[tuple[Path, dict]]) -> dict[str, list[dict]]:
-    groups: dict[str, list[dict]] = {}
-    for _, run in runs:
-        for row in run.get("requests", []):
-            groups.setdefault(row.get("label") or "default", []).append(row)
-    return groups
+def collect(results_dir: Path) -> dict[str, dict[str, dict[str, list]]]:
+    """Return dataset -> type -> backend -> list of (path, json) runs."""
+    tree: dict[str, dict[str, dict[str, list]]] = {}
+    for path in sorted(results_dir.rglob("*.json")):
+        bench_type = next(
+            (t for t in TYPES if path.name.startswith(t + "_")), None
+        )
+        if bench_type is None:
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            continue
+        parts = path.relative_to(results_dir).parts
+        dataset = parts[0] if len(parts) >= 2 else "root"
+        backend = parts[-2] if len(parts) >= 2 else "root"
+        tree.setdefault(dataset, {}).setdefault(bench_type, {}).setdefault(
+            backend, []
+        ).append((path, data))
+    return tree
 
 
-def render_type(results_dir: Path, bench_type: str) -> str:
-    runs = collect_runs(results_dir, bench_type)
-    lines = [f"## {bench_type} ({len(runs)} run{'s' if len(runs) != 1 else ''})", ""]
-    if not runs:
+def render_type(bench_type: str, backends: dict[str, list]) -> str:
+    lines = [f"### {bench_type}", ""]
+    if not backends:
         lines.append("_no results_")
         lines.append("")
         return "\n".join(lines)
 
-    metrics = run_metrics(bench_type, runs[0][1].get("summary", {}))
-    columns = list(metrics.keys())
-    lines.append("| file | " + " | ".join(columns) + " |")
-    lines.append("|" + "---|" * (len(columns) + 1))
-    for path, run in runs:
-        values = run_metrics(bench_type, run.get("summary", {}))
-        cells = [path.name] + [fmt(values.get(c)) for c in columns]
+    sample = run_metrics(bench_type, next(iter(backends.values()))[0][1].get("summary", {}))
+    columns = list(sample.keys())
+    lines.append("| backend | runs | " + " | ".join(columns) + " |")
+    lines.append("|" + "---|" * (len(columns) + 2))
+    for backend in sorted(backends):
+        runs = backends[backend]
+        rows = [run_metrics(bench_type, run.get("summary", {})) for _, run in runs]
+        cells = [backend, str(len(runs))] + [
+            fmt(mean([r.get(c) for r in rows])) for c in columns
+        ]
         lines.append("| " + " | ".join(cells) + " |")
     lines.append("")
 
-    aggregates = {
-        c: mean([run_metrics(bench_type, run.get("summary", {}))[c] for _, run in runs])
-        for c in columns
-    }
-    agg_cells = " | ".join(fmt(aggregates[c]) for c in columns)
-    lines.append(f"**aggregate (mean):** | {agg_cells} |")
-    lines.append("")
-
-    labels = per_label(runs)
-    if any(key != "default" for key in labels):
-        lines.append("### by label")
+    labels: dict[tuple[str, str], list[tuple[float, float, float]]] = {}
+    for backend in backends:
+        for _, run in backends[backend]:
+            for row in run.get("requests", []):
+                label = row.get("label") or "default"
+                labels.setdefault((backend, label), []).append(
+                    (
+                        row.get("total_time", 0.0),
+                        row.get("time_to_first_token", 0.0),
+                        row.get("tokens", 0.0),
+                    )
+                )
+    if any(label != "default" for _, label in labels):
+        lines.append("#### by label")
         lines.append("")
-        lines.append("| label | n | mean_total_s | mean_ttft_s | mean_tokens |")
-        lines.append("|---|---|---|---|---|")
-        for label in sorted(labels):
-            rows = labels[label]
-            total = mean([r.get("total_time", 0.0) for r in rows])
-            ttft = mean([r.get("time_to_first_token", 0.0) for r in rows])
-            toks = mean([r.get("tokens", 0.0) for r in rows])
+        lines.append("| backend | label | n | mean_total_s | mean_ttft_s | mean_tokens |")
+        lines.append("|---|---|---|---|---|---|")
+        for (backend, label) in sorted(labels):
+            vals = labels[(backend, label)]
             lines.append(
-                f"| {label} | {len(rows)} | {fmt(total)} | {fmt(ttft)} | {fmt(toks)} |"
+                f"| {backend} | {label} | {len(vals)} | "
+                f"{fmt(mean([v[0] for v in vals]))} | "
+                f"{fmt(mean([v[1] for v in vals]))} | "
+                f"{fmt(mean([v[2] for v in vals]))} |"
             )
         lines.append("")
     return "\n".join(lines)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Aggregate benchmark results by type")
+    parser = argparse.ArgumentParser(description="Aggregate benchmark results into a report")
     parser.add_argument(
         "--results-dir",
         default=str(Path(__file__).resolve().parent / "results"),
@@ -149,14 +157,23 @@ def main() -> None:
     if not results_dir.is_dir():
         raise SystemExit(f"results dir not found: {results_dir}")
 
+    tree = collect(results_dir)
     header = [
         "# Benchmark Aggregation Report",
         f"- results dir: {results_dir}",
         f"- generated: {time.strftime('%Y-%m-%d %H:%M:%S')}",
         "",
     ]
-    sections = [render_type(results_dir, t) for t in TYPES]
-    report = "\n".join(header + sections)
+    if not tree:
+        header.append("_no benchmark results found_")
+        header.append("")
+    for dataset in sorted(tree):
+        header.append(f"## {dataset}")
+        header.append("")
+        for bench_type in TYPES:
+            if bench_type in tree[dataset]:
+                header.append(render_type(bench_type, tree[dataset][bench_type]))
+    report = "\n".join(header)
 
     print(report)
     if args.output:

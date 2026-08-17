@@ -1,0 +1,2 @@
+total_time,time_to_first_token,generation_time,tokens,tokens_per_second,label
+14.530156899709255,3.933710899669677,10.596446000039577,907,85.59473619708083,default

@@ -1,0 +1,74 @@
+{
+  "summary": {
+    "model": "Qwen/Qwen3.5-2B",
+    "endpoint": "http://192.168.30.244:8081/v1/chat/completions",
+    "iterations": 5,
+    "total_latency_s": {
+      "min": 15.001610399689525,
+      "max": 15.031148799695075,
+      "mean": 15.017418999969959,
+      "p50": 15.013642800040543,
+      "p90": 15.031148799695075,
+      "p95": 15.031148799695075
+    },
+    "time_to_first_token_s": {
+      "min": 0.03670639963820577,
+      "max": 0.07639069994911551,
+      "mean": 0.05239987997338176,
+      "p50": 0.045590899884700775,
+      "p90": 0.07639069994911551,
+      "p95": 0.07639069994911551
+    },
+    "generation_time_s": {
+      "min": 14.954758099745959,
+      "max": 14.969542699865997,
+      "mean": 14.965019119996578,
+      "p50": 14.96783890016377,
+      "p90": 14.969542699865997,
+      "p95": 14.969542699865997
+    },
+    "tokens_mean": 1024.0
+  },
+  "requests": [
+    {
+      "total_time": 15.031148799695075,
+      "time_to_first_token": 0.07639069994911551,
+      "generation_time": 14.954758099745959,
+      "tokens": 1024,
+      "tokens_per_second": 68.47319048359566,
+      "label": "default"
+    },
+    {
+      "total_time": 15.02789290016517,
+      "time_to_first_token": 0.058350200299173594,
+      "generation_time": 14.969542699865997,
+      "tokens": 1024,
+      "tokens_per_second": 68.40556325138553,
+      "label": "default"
+    },
+    {
+      "total_time": 15.012800100259483,
+      "time_to_first_token": 0.04496120009571314,
+      "generation_time": 14.96783890016377,
+      "tokens": 1024,
+      "tokens_per_second": 68.41334990509525,
+      "label": "default"
+    },
+    {
+      "total_time": 15.001610399689525,
+      "time_to_first_token": 0.03670639963820577,
+      "generation_time": 14.96490400005132,
+      "tokens": 1024,
+      "tokens_per_second": 68.4267670542015,
+      "label": "default"
+    },
+    {
+      "total_time": 15.013642800040543,
+      "time_to_first_token": 0.045590899884700775,
+      "generation_time": 14.968051900155842,
+      "tokens": 1024,
+      "tokens_per_second": 68.41237636203937,
+      "label": "default"
+    }
+  ]
+}
