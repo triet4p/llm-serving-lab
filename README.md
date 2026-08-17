@@ -63,5 +63,4 @@ uv run pytest -v
 - [04 - Technical Stack](docs/04-project-technical-stack.md)
 - [05 - Running Cookbook](docs/05-running-cookbook.md)
 - [06 - Benchmark Running Cookbook](docs/06-benchmark-running-cookbook.md)
-- [07 - Continuous Batching Demo](docs/07-continuous-batching-demo.md)
 - [Global Project Plan](docs/PLAN.md)
