@@ -11,6 +11,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
+# An exported MODEL_NAME overrides the profile/config default. Capture it
+# before the sources set their own MODEL_NAME, then restore it afterwards.
+PRE_MODEL="${MODEL_NAME:-}"
 set -a
 source "$ROOT/configs/models.env"
 source "$ROOT/profiles/vllm.env"
@@ -18,10 +21,15 @@ if [[ -f "$ROOT/servers/vllm/config.env" ]]; then
     source "$ROOT/servers/vllm/config.env"
 fi
 set +a
+export MODEL_NAME="${PRE_MODEL:-$MODEL_NAME}"
 
 HOST="${HOST:-0.0.0.0}"
 PORT="${PORT:-8000}"
 TENSOR_PARALLEL_SIZE="${TENSOR_PARALLEL_SIZE:-1}"
+
+# Pre-download the model so vLLM serves from the local cache.
+echo "==> Pre-downloading model $MODEL_NAME"
+uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('$MODEL_NAME')"
 
 echo "==> vLLM server: http://$HOST:$PORT/v1 (model=$MODEL_NAME, tensor_parallel_size=$TENSOR_PARALLEL_SIZE)"
 

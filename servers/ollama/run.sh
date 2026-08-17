@@ -11,14 +11,18 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
+# An exported MODEL_NAME overrides the profile default. Capture it before the
+# profile sources its own MODEL_NAME, then restore it afterwards.
+PRE_MODEL="${MODEL_NAME:-}"
 set -a
 source "$ROOT/configs/models.env"
 source "$ROOT/profiles/ollama.env"
 set +a
+export MODEL_NAME="${PRE_MODEL:-$MODEL_NAME}"
 
 OLLAMA_HOST="${OLLAMA_HOST:-0.0.0.0:11434}"
 OLLAMA_PORT="${OLLAMA_HOST##*:}"
-MODEL_NAME="${MODEL_NAME:-qwen3:8b}"
+MODEL_NAME="${MODEL_NAME:-qwen3.5:2b}"
 MODELFILE="$ROOT/servers/ollama/Modelfile"
 
 export OLLAMA_HOST
@@ -37,6 +41,10 @@ for _ in $(seq 1 30); do
     fi
     sleep 1
 done
+
+# Pre-download the base model so creation/serving does not pull on demand.
+echo "==> Pulling model $MODEL_NAME"
+ollama pull "$MODEL_NAME"
 
 if ollama list | grep -q "^${MODEL_NAME}[[:space:]]"; then
     echo "==> Model $MODEL_NAME already present; skipping creation."

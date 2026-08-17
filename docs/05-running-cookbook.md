@@ -49,7 +49,11 @@ $env:MODEL_NAME      = "Qwen/Qwen3.5-2B"
 ## 2. Server side: running a backend
 
 **No environment setup required.** Each runner sources its own profile and
-config internally (bind host, port, model) — you only run one command.
+config internally (bind host, port, model) — you only run one command. The
+runner also **pre-downloads the model** to the server's Hugging Face (vLLM,
+baseline) or Ollama cache before serving, so the first request never triggers a
+download. Export `MODEL_NAME` beforehand to choose which model is downloaded
+and served, e.g. `export MODEL_NAME=Qwen/Qwen3.5-2B`.
 
 ### 2.1 Baseline FastAPI (educational)
 
@@ -125,7 +129,7 @@ wait                                  # keep serving
 
 Endpoint: `http://<host>:11434/v1` (e.g. `POST /v1/chat/completions`,
 `GET /v1/models`). Model tag comes from `profiles/ollama.env`
-(`MODEL_NAME=qwen3:8b`).
+(`MODEL_NAME=qwen3.5:2b`).
 
 ### 2.4 Quick reference
 
@@ -280,7 +284,7 @@ uv run benchmarks/concurrency.py --requests 16 --concurrency 4
 ```
 
 To switch to another backend, re-export `OPENAI_BASE_URL` (and `MODEL_NAME` if
-the backend uses a different tag, e.g. Ollama's `qwen3:8b`): vLLM → port
+the backend uses a different tag, e.g. Ollama's `qwen3.5:2b`): vLLM → port
 `8000`, Ollama → port `11434`, baseline → port `8080`. The same clients and
 benchmarks work unchanged against all three backends. In bash, `set -a;
 source profiles/<backend>.env; set +a` loads the values for you.
