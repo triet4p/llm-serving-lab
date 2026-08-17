@@ -196,6 +196,10 @@ common denominator across all three backends.
 
 ## 4. Benchmarks (`benchmarks/`)
 
+See [06 - Benchmark Running Cookbook](06-benchmark-running-cookbook.md) for the
+dedicated, step-by-step benchmark guide (order, options, results, reading the
+metrics). Summary below.
+
 Lightweight, backend-neutral benchmarks (docs 04 §9; not a scientific study,
 docs 03 §2.6). They are **clients**: like the clients above, they need the env
 contract in the shell — source a profile first. Run with `uv run`; deps are

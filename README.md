@@ -62,4 +62,5 @@ uv run pytest -v
 - [03 - Project Scope](docs/03-project-scope.md)
 - [04 - Technical Stack](docs/04-project-technical-stack.md)
 - [05 - Running Cookbook](docs/05-running-cookbook.md)
+- [06 - Benchmark Running Cookbook](docs/06-benchmark-running-cookbook.md)
 - [Global Project Plan](docs/PLAN.md)
