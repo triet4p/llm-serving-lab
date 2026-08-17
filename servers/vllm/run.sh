@@ -27,6 +27,13 @@ HOST="${HOST:-0.0.0.0}"
 PORT="${PORT:-8000}"
 TENSOR_PARALLEL_SIZE="${TENSOR_PARALLEL_SIZE:-1}"
 
+# CUDA 13.0's nvcc refuses GCC versions later than 12 during runtime JIT
+# (flashinfer cached-op builds), which aborts engine init with an
+# "unsupported GNU version" error. Relax the version check and skip
+# flashinfer's runtime JIT build. (See lessons-learned log.)
+export NVCC_PREPEND_FLAGS="${NVCC_PREPEND_FLAGS:--allow-unsupported-compiler}"
+export VLLM_USE_FLASHINFER="${VLLM_USE_FLASHINFER:-0}"
+
 # Pre-download the model so vLLM serves from the local cache.
 echo "==> Pre-downloading model $MODEL_NAME"
 uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('$MODEL_NAME')"
