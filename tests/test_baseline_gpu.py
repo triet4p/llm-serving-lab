@@ -18,6 +18,12 @@ def test_baseline_moves_model_to_device():
     assert ".to(DEVICE)" in app_text()
 
 
+def test_baseline_loads_in_bfloat16():
+    text = app_text()
+    assert "torch_dtype=torch.bfloat16" in text
+    assert "low_cpu_mem_usage=True" in text
+
+
 def test_baseline_moves_inputs_to_device():
     assert "value.to(DEVICE)" in app_text()
 
