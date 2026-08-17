@@ -88,7 +88,7 @@ Benchmarks read their requests from a **dataset**: a JSON file in
 `benchmarks/datasets/`. Two ship with the repo:
 
 - `default.json` — the original single-prompt benchmark (one-sentence
-  explanation prompt, `max_tokens=128`). Equivalent to running without
+  explanation prompt, `max_tokens=1024`). Equivalent to running without
   `--dataset`.
 - `multi-length.json` — a short/medium/long mix used by the continuous batching
   demo (section 8).
@@ -114,7 +114,27 @@ Every run writes two files into `benchmarks/results/` (gitignored):
 - `<name>_<timestamp>.json` — full detail: summary + per-request rows.
 - `<name>_<timestamp>.csv` — one row per request (metrics as columns).
 
-Add `--no-save` to print only and skip writing files.
+Add `--no-save` to print only and skip writing files. Use `--output-dir <path>`
+to save results somewhere else (e.g. keep each option/session's results
+separate).
+
+### 5.1 Aggregation report
+
+`benchmarks/aggregate_report.py` turns a results directory into a per-type
+markdown report: one section for each of the three benchmark types
+(`single_request`, `latency`, `concurrency`), a table with one run per row plus
+an **aggregate (mean)** row, and — when the runs used a dataset with multiple
+prompts — a **per-label** table (short/medium/long ...) built from every
+per-request row.
+
+```powershell
+uv run benchmarks/aggregate_report.py                                    # default: benchmarks/results/
+uv run benchmarks/aggregate_report.py --results-dir results/multi-length  # a specific dir
+uv run benchmarks/aggregate_report.py --output report.md                  # also write the report
+```
+
+It works for any dataset because each saved JSON carries its per-request rows
+with their `label`.
 
 ## 6. Options reference
 
