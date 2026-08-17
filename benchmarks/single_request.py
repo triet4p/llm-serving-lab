@@ -211,6 +211,8 @@ def main() -> None:
 
     with httpx.Client(timeout=args.timeout or None) as client:
         result = send_request(client, url, headers, payload)
+    if entry_label:
+        result["label"] = entry_label
 
     print(f"model:      {model}")
     print(f"endpoint:   {url}")
