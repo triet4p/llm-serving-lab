@@ -3,9 +3,12 @@ set -euo pipefail
 
 # Start the educational baseline FastAPI server.
 #
-# Sources the shared model config plus the baseline profile so the server
-# picks up OPENAI_BASE_URL / OPENAI_API_KEY / MODEL_NAME, then launches
-# uvicorn on the port from OPENAI_BASE_URL (default 8080).
+# The baseline loads the model with Hugging Face Transformers + torch, so it
+# must run on the GPU server (the same box as vLLM) rather than the developer
+# machine. It sources the shared model config plus the baseline profile so the
+# server picks up OPENAI_BASE_URL / OPENAI_API_KEY / MODEL_NAME, then launches
+# uvicorn bound to 0.0.0.0 on the port from OPENAI_BASE_URL (default 8080) so
+# the developer machine can reach it over the network.
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
@@ -15,7 +18,7 @@ source "$ROOT/profiles/baseline.env"
 set +a
 
 PORT="${PORT:-8080}"
-HOST="${HOST:-127.0.0.1}"
+HOST="${HOST:-0.0.0.0}"
 
 cd "$ROOT/servers/baseline-fastapi"
 
