@@ -196,7 +196,7 @@ Example:
 ```bash
 OPENAI_BASE_URL=http://gpu-server:8000/v1
 OPENAI_API_KEY=demo
-MODEL_NAME=Qwen/Qwen3-8B
+MODEL_NAME=Qwen/Qwen3.5-2B
 ```
 
 Suggested profiles:

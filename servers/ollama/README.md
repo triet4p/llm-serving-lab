@@ -21,13 +21,13 @@ The model and its serving parameters live in `servers/ollama/Modelfile`:
 
 | Setting      | Default   | Meaning                              |
 |--------------|-----------|--------------------------------------|
-| `FROM`       | `qwen3:8b` | Base model the created model derives from |
+| `FROM`       | `qwen3.5:2b` | Base model the created model derives from |
 | `num_ctx`    | `4096`    | Context window size in tokens         |
 | `temperature`| `0.7`     | Default sampling temperature          |
 | `num_predict`| `2048`    | Maximum tokens generated per request  |
 
 The model tag created from the Modelfile matches `MODEL_NAME` in
-`profiles/ollama.env` (`qwen3:8b`), so clients address it by that name. The
+`profiles/ollama.env` (`qwen3.5:2b`), so clients address it by that name. The
 OpenAI-compatible base URL comes from the same profile:
 `OPENAI_BASE_URL=http://192.168.30.244:11434/v1` (the server host; adjust if
 your server's address differs).
@@ -37,7 +37,7 @@ Optional overrides (export before running):
 | Variable       | Default           | Meaning                    |
 |----------------|-------------------|----------------------------|
 | `OLLAMA_HOST`  | `0.0.0.0:11434`   | Bind address for `ollama serve` |
-| `MODEL_NAME`   | `qwen3:8b`        | Model tag to create/serve  |
+| `MODEL_NAME`   | `qwen3.5:2b`        | Model tag to create/serve  |
 
 ## Start the server
 

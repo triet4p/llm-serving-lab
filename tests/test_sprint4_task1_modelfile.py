@@ -13,7 +13,7 @@ def test_modelfile_exists():
 
 
 def test_modelfile_defines_base_model():
-    assert "FROM qwen3:8b" in modelfile_text()
+    assert "FROM qwen3.5:2b" in modelfile_text()
 
 
 def test_modelfile_defines_serving_parameters():

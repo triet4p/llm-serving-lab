@@ -11,7 +11,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStream
 
 app = FastAPI(title="Baseline FastAPI Server")
 
-MODEL_NAME = os.environ.get("MODEL_NAME", "Qwen/Qwen3-8B")
+MODEL_NAME = os.environ.get("MODEL_NAME", "Qwen/Qwen3.5-2B")
 
 _model = None
 _tokenizer = None

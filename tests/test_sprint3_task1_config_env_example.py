@@ -14,7 +14,7 @@ def test_config_env_example_exists():
 
 def test_config_documents_model():
     assert "MODEL_NAME" in config_text()
-    assert "Qwen/Qwen3-8B" in config_text()
+    assert "Qwen/Qwen3.5-2B" in config_text()
 
 
 def test_config_documents_host_and_port():

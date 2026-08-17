@@ -11,7 +11,7 @@ set -euo pipefail
 #   export OPENAI_BASE_URL=http://localhost:11434/v1  # Ollama
 #   export OPENAI_BASE_URL=http://localhost:8080/v1   # baseline FastAPI
 #   export OPENAI_API_KEY=demo
-#   export MODEL_NAME=Qwen/Qwen3-8B
+#   export MODEL_NAME=Qwen/Qwen3.5-2B
 #   bash clients/raw-http/curl-chat.sh
 #
 # Or source a backend profile so the three variables are set for you:
@@ -20,7 +20,7 @@ set -euo pipefail
 
 : "${OPENAI_BASE_URL:?Set OPENAI_BASE_URL (e.g. http://localhost:8000/v1), see .env.example}"
 : "${OPENAI_API_KEY:?Set OPENAI_API_KEY (e.g. demo), see .env.example}"
-: "${MODEL_NAME:?Set MODEL_NAME (e.g. Qwen/Qwen3-8B), see .env.example}"
+: "${MODEL_NAME:?Set MODEL_NAME (e.g. Qwen/Qwen3.5-2B), see .env.example}"
 
 curl -sS "$OPENAI_BASE_URL/chat/completions" \
   -H "Content-Type: application/json" \

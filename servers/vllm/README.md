@@ -33,7 +33,7 @@ need a GPU (docs/04 §12).
 
    | Variable             | Default       | Meaning                              |
    |----------------------|---------------|--------------------------------------|
-   | `MODEL_NAME`         | `Qwen/Qwen3-8B` | Model to serve                     |
+   | `MODEL_NAME`         | `Qwen/Qwen3.5-2B` | Model to serve                     |
    | `HOST`               | `0.0.0.0`     | Bind address (keep `0.0.0.0` for LAN) |
    | `PORT`               | `8000`        | OpenAI-compatible endpoint port      |
    | `TENSOR_PARALLEL_SIZE` | `1`         | GPUs across which the model is sharded |

@@ -39,7 +39,7 @@ Per-backend values (change `OPENAI_BASE_URL` and, for Ollama, `MODEL_NAME`):
 | Backend | Port | MODEL_NAME |
 |---|---|---|
 | vLLM | 8000 | `Qwen/Qwen3.5-2B` |
-| Ollama | 11434 | `qwen3:8b` |
+| Ollama | 11434 | `qwen3.5:2b` |
 | Baseline FastAPI | 8080 | `Qwen/Qwen3.5-2B` |
 
 ## 3. Run the benchmarks (recommended order)

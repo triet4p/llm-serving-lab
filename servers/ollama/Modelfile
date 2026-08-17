@@ -5,7 +5,7 @@
 # `ollama create`, so the model tag below must match what clients send as
 # MODEL_NAME (see profiles/ollama.env).
 
-FROM qwen3:8b
+FROM qwen3.5:2b
 
 # Context window size in tokens available during generation.
 PARAMETER num_ctx 4096
