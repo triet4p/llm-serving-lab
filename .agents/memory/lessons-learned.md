@@ -49,3 +49,13 @@
 **Fix / workaround:** In all three benchmark SSE parsers (`benchmarks/single_request.py`, `latency.py`, `concurrency.py`), count a token when any of `content`, `reasoning`, or `reasoning_content` is non-empty: `text = delta.get("content") or delta.get("reasoning") or delta.get("reasoning_content") or ""`.
 
 **Watch out for:** Any reasoning-capable model (Qwen3/3.5, DeepSeek-R1, etc.) on any backend. Token counts then include thinking tokens — that is the real generation throughput, but it makes cross-backend token totals differ if only one backend enables thinking.
+
+## [2026-08-17] Baseline FastAPI OOMs on 16 GB GPU when loading FP32 weights
+
+**Symptom:** After benchmarking vLLM, switching to the baseline FastAPI server, the first request returned 500 with `torch.OutOfMemoryError: CUDA out of memory` while `AutoModelForCausalLM.from_pretrained(...).to(DEVICE)` ran; the process itself consumed 15.36 GiB and nvidia-smi showed the GPU otherwise free.
+
+**Root cause:** The baseline loaded the model in default FP32 — Qwen3.5-2B is ~2B params ≈ 9-10 GB FP32 — which fills the 16 GB card during the CPU→GPU copy and leaves no room for torch's caching allocator, so even a 24 MiB allocation OOMs. vLLM loads in bf16 (half the memory), which is why it fit.
+
+**Fix / workaround:** Load the model in bf16 in `servers/baseline-fastapi/app.py`: `AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True).to(DEVICE)`. Restart the server after pulling.
+
+**Watch out for:** Any transformers-based server on a ≤16 GB card must use a reduced dtype (bf16/fp16). Also make sure the previous backend's process has actually exited before starting the next — a lingering vLLM process holds VRAM and makes the OOM worse.
