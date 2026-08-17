@@ -4,6 +4,7 @@ import threading
 import time
 import uuid
 
+import torch
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -13,6 +14,8 @@ app = FastAPI(title="Baseline FastAPI Server")
 
 MODEL_NAME = os.environ.get("MODEL_NAME", "Qwen/Qwen3.5-2B")
 
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 _model = None
 _tokenizer = None
 
@@ -21,7 +24,7 @@ def load_model():
     global _model, _tokenizer
     if _model is None or _tokenizer is None:
         _tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-        _model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+        _model = AutoModelForCausalLM.from_pretrained(MODEL_NAME).to(DEVICE)
     return _tokenizer, _model
 
 
@@ -42,7 +45,7 @@ class ChatCompletionRequest(BaseModel):
 def _prepare_inputs(tokenizer, request):
     messages = [message.model_dump() for message in request.messages]
     template_kwargs = request.chat_template_kwargs or {}
-    return tokenizer.apply_chat_template(
+    inputs = tokenizer.apply_chat_template(
         messages,
         add_generation_prompt=True,
         return_tensors="pt",
@@ -50,7 +53,7 @@ def _prepare_inputs(tokenizer, request):
     )
     if not hasattr(inputs, "input_ids") and not isinstance(inputs, dict):
         inputs = {"input_ids": inputs}
-    return inputs
+    return {key: value.to(DEVICE) for key, value in inputs.items()}
 
 
 def _generation_kwargs(request) -> dict:
@@ -73,7 +76,7 @@ def _chat_completions(request: ChatCompletionRequest) -> dict:
     inputs = _prepare_inputs(tokenizer, request)
     outputs = model.generate(**inputs, **_generation_kwargs(request))
     generated = outputs[0][inputs["input_ids"].shape[1] :]
-    content = tokenizer.decode(generated, skip_special_tokens=True)
+    content = tokenizer.decode(generated.cpu(), skip_special_tokens=True)
 
     return {
         "id": f"chatcmpl-{uuid.uuid4().hex}",

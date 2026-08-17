@@ -1,6 +1,6 @@
 {
   "name": "default",
-  "description": "The original single-prompt benchmark (one-sentence explanation prompt, 128 max tokens) used in the earlier baseline/vLLM/Ollama runs. Equivalent to running without --dataset.",
+  "description": "The original single-prompt benchmark (one-sentence explanation prompt, 1024 max tokens). Equivalent to running without --dataset.",
   "requests": [
     {
       "label": "default",
