@@ -76,7 +76,13 @@ async def send_request(
             if not choices:
                 continue
             delta = choices[0].get("delta") or {}
-            if delta.get("content"):
+            text = (
+                delta.get("content")
+                or delta.get("reasoning")
+                or delta.get("reasoning_content")
+                or ""
+            )
+            if text:
                 tokens += 1
                 if first_token_time is None:
                     first_token_time = time.perf_counter() - start
