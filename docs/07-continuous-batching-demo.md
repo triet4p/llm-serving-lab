@@ -94,6 +94,12 @@ concurrency level:
 
 ## 5. Swapping / adding datasets
 
+Two datasets ship with the repo under `benchmarks/datasets/`:
+
+- `default.json` — the original single-prompt benchmark (equivalent to running
+  without `--dataset`).
+- `multi-length.json` — the short/medium/long mix used in this demo.
+
 - **Add** a dataset: create `benchmarks/datasets/<name>.json` with the same
   shape (`name`, `description`, `requests: [{label?, prompt, max_tokens?}]`).
 - **Use** it: `--dataset <name>` on any benchmark script.

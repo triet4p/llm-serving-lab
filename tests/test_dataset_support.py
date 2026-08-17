@@ -20,6 +20,16 @@ def test_multi_length_dataset_exists_and_valid():
     assert any(r.get("max_tokens", 0) >= 512 for r in data["requests"])
 
 
+def test_default_dataset_matches_legacy_benchmark():
+    path = DATASETS / "default.json"
+    assert path.is_file(), "benchmarks/datasets/default.json must exist"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert len(data["requests"]) == 1
+    req = data["requests"][0]
+    assert req["prompt"] == "Explain in one sentence what an LLM serving engine does."
+    assert req["max_tokens"] == 128
+
+
 def test_benchmarks_offer_dataset_flag():
     for script in SCRIPTS:
         text = script.read_text(encoding="utf-8")
