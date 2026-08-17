@@ -52,6 +52,14 @@ def required_env(name: str) -> str:
         )
 
 
+def load_dataset(name: str) -> list[dict]:
+    """Load a benchmark dataset (benchmarks/datasets/<name>.json)."""
+    path = Path(__file__).resolve().parent / "datasets" / f"{name}.json"
+    if not path.is_file():
+        raise SystemExit(f"Dataset not found: {name!r}. Expected at {path}.")
+    return json.loads(path.read_text(encoding="utf-8"))["requests"]
+
+
 def send_request(client: httpx.Client, url: str, headers: dict, payload: dict) -> dict:
     """Stream one chat completion and time it with a monotonic clock."""
     start = time.perf_counter()
@@ -125,6 +133,16 @@ def main() -> None:
     )
     parser.add_argument("--max-tokens", type=int, default=128, help="max_tokens for the request")
     parser.add_argument(
+        "--dataset",
+        default=None,
+        help="benchmark dataset name (benchmarks/datasets/<name>.json); overrides --prompt",
+    )
+    parser.add_argument(
+        "--label",
+        default=None,
+        help="only pick the dataset request with this label (e.g. short, long)",
+    )
+    parser.add_argument(
         "--thinking",
         choices=["auto", "on", "off"],
         default="auto",
@@ -147,6 +165,21 @@ def main() -> None:
     api_key = required_env("OPENAI_API_KEY")
     model = required_env("MODEL_NAME")
 
+    if args.dataset:
+        entries = load_dataset(args.dataset)
+        if args.label:
+            entries = [e for e in entries if e.get("label") == args.label]
+            if not entries:
+                raise SystemExit(f"No dataset request with label {args.label!r} in {args.dataset}")
+        entry = entries[0]
+        prompt = entry["prompt"]
+        max_tokens = entry.get("max_tokens", args.max_tokens)
+        entry_label = entry.get("label", "")
+    else:
+        prompt = args.prompt
+        max_tokens = args.max_tokens
+        entry_label = ""
+
     url = f"{base_url}/chat/completions"
     headers = {
         "Content-Type": "application/json",
@@ -156,9 +189,9 @@ def main() -> None:
         "model": model,
         "messages": [
             {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": args.prompt},
+            {"role": "user", "content": prompt},
         ],
-        "max_tokens": args.max_tokens,
+        "max_tokens": max_tokens,
         "temperature": 0.7,
         "stream": True,
     }
@@ -170,6 +203,8 @@ def main() -> None:
 
     print(f"model:      {model}")
     print(f"endpoint:   {url}")
+    if entry_label:
+        print(f"request:    label={entry_label} max_tokens={max_tokens}")
     print("---")
     print(f"total latency (s):        {result['total_time']:.3f}")
     print(f"time-to-first-token (s):  {result['time_to_first_token']:.3f}")

@@ -53,6 +53,14 @@ def required_env(name: str) -> str:
         )
 
 
+def load_dataset(name: str) -> list[dict]:
+    """Load a benchmark dataset (benchmarks/datasets/<name>.json)."""
+    path = Path(__file__).resolve().parent / "datasets" / f"{name}.json"
+    if not path.is_file():
+        raise SystemExit(f"Dataset not found: {name!r}. Expected at {path}.")
+    return json.loads(path.read_text(encoding="utf-8"))["requests"]
+
+
 async def send_request(
     client: httpx.AsyncClient, url: str, headers: dict, payload: dict
 ) -> dict:
@@ -99,16 +107,16 @@ async def send_request(
 
 
 async def run_batch(
-    url: str, headers: dict, payload: dict, requests: int, concurrency: int, timeout: int = 0
+    url: str, headers: dict, payloads: list[dict], concurrency: int, timeout: int = 0
 ) -> list[dict]:
     sem = asyncio.Semaphore(concurrency)
 
-    async def bounded() -> dict:
+    async def bounded(payload: dict) -> dict:
         async with sem:
             async with httpx.AsyncClient(timeout=timeout or None) as client:
                 return await send_request(client, url, headers, payload)
 
-    return list(await asyncio.gather(*(bounded() for _ in range(requests))))
+    return list(await asyncio.gather(*(bounded(p) for p in payloads)))
 
 
 def save_results(script_name: str, summary: dict, rows: list[dict]) -> tuple[Path, Path]:
@@ -143,6 +151,11 @@ def main() -> None:
     )
     parser.add_argument("--max-tokens", type=int, default=128, help="max_tokens for each request")
     parser.add_argument(
+        "--dataset",
+        default=None,
+        help="benchmark dataset name (benchmarks/datasets/<name>.json); batch cycles through it",
+    )
+    parser.add_argument(
         "--thinking",
         choices=["auto", "on", "off"],
         default="auto",
@@ -173,24 +186,35 @@ def main() -> None:
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
     }
-    payload = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": args.prompt},
-        ],
-        "max_tokens": args.max_tokens,
-        "temperature": 0.7,
-        "stream": True,
-    }
-    if args.thinking != "auto":
-        payload["chat_template_kwargs"] = {"enable_thinking": args.thinking == "on"}
+    if args.dataset:
+        entries = load_dataset(args.dataset)
+    else:
+        entries = [{"prompt": args.prompt, "max_tokens": args.max_tokens, "label": ""}]
+    sequence = [entries[i % len(entries)] for i in range(args.requests)]
+
+    def build_payload(entry: dict) -> dict:
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": entry["prompt"]},
+            ],
+            "max_tokens": entry.get("max_tokens", args.max_tokens),
+            "temperature": 0.7,
+            "stream": True,
+        }
+        if args.thinking != "auto":
+            payload["chat_template_kwargs"] = {"enable_thinking": args.thinking == "on"}
+        return payload
+
+    payloads = [build_payload(entry) for entry in sequence]
 
     start = time.perf_counter()
-    results = asyncio.run(
-        run_batch(url, headers, payload, args.requests, args.concurrency, args.timeout)
-    )
+    results = asyncio.run(run_batch(url, headers, payloads, args.concurrency, args.timeout))
     wall = time.perf_counter() - start
+
+    for i, entry in enumerate(sequence):
+        results[i]["label"] = entry.get("label", "")
 
     total_tokens = sum(r["tokens"] for r in results)
     latencies = [r["total_time"] for r in results]
@@ -204,6 +228,19 @@ def main() -> None:
     print(f"tokens/sec:       {total_tokens / wall:.2f}")
     print(f"latency min/mean/max (s): "
           f"{min(latencies):.3f} / {statistics.fmean(latencies):.3f} / {max(latencies):.3f}")
+
+    if args.dataset:
+        by_label: dict[str, list[dict]] = {}
+        for result in results:
+            by_label.setdefault(result.get("label", ""), []).append(result)
+        print("per-label summary")
+        for label in sorted(by_label):
+            rs = by_label[label]
+            mean_tokens = statistics.fmean([r["tokens"] for r in rs])
+            print(
+                f"  {label:>10}: n={len(rs)} mean_latency={statistics.fmean([r['total_time'] for r in rs]):.3f}s "
+                f"mean_tokens={mean_tokens:.1f}"
+            )
 
     if not args.no_save:
         summary = {

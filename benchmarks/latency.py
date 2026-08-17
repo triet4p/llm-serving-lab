@@ -51,6 +51,14 @@ def required_env(name: str) -> str:
         )
 
 
+def load_dataset(name: str) -> list[dict]:
+    """Load a benchmark dataset (benchmarks/datasets/<name>.json)."""
+    path = Path(__file__).resolve().parent / "datasets" / f"{name}.json"
+    if not path.is_file():
+        raise SystemExit(f"Dataset not found: {name!r}. Expected at {path}.")
+    return json.loads(path.read_text(encoding="utf-8"))["requests"]
+
+
 def send_request(client: httpx.Client, url: str, headers: dict, payload: dict) -> dict:
     """Stream one chat completion and time it with a monotonic clock."""
     start = time.perf_counter()
@@ -149,6 +157,11 @@ def main() -> None:
     )
     parser.add_argument("--max-tokens", type=int, default=128, help="max_tokens for each request")
     parser.add_argument(
+        "--dataset",
+        default=None,
+        help="benchmark dataset name (benchmarks/datasets/<name>.json); requests cycle through it",
+    )
+    parser.add_argument(
         "--thinking",
         choices=["auto", "on", "off"],
         default="auto",
@@ -179,23 +192,33 @@ def main() -> None:
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
     }
-    payload = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": args.prompt},
-        ],
-        "max_tokens": args.max_tokens,
-        "temperature": 0.7,
-        "stream": True,
-    }
-    if args.thinking != "auto":
-        payload["chat_template_kwargs"] = {"enable_thinking": args.thinking == "on"}
+    if args.dataset:
+        entries = load_dataset(args.dataset)
+    else:
+        entries = [{"prompt": args.prompt, "max_tokens": args.max_tokens, "label": ""}]
+    sequence = [entries[i % len(entries)] for i in range(args.iterations)]
+
+    def build_payload(entry: dict) -> dict:
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": entry["prompt"]},
+            ],
+            "max_tokens": entry.get("max_tokens", args.max_tokens),
+            "temperature": 0.7,
+            "stream": True,
+        }
+        if args.thinking != "auto":
+            payload["chat_template_kwargs"] = {"enable_thinking": args.thinking == "on"}
+        return payload
 
     results = []
     with httpx.Client(timeout=args.timeout or None) as client:
-        for i in range(args.iterations):
-            results.append(send_request(client, url, headers, payload))
+        for i, entry in enumerate(sequence):
+            result = send_request(client, url, headers, build_payload(entry))
+            result["label"] = entry.get("label", "")
+            results.append(result)
             print(f"  request {i + 1}/{args.iterations} done", end="\r")
     print()
 
@@ -216,6 +239,20 @@ def main() -> None:
             f"mean={s['mean']:.3f} p50={s['p50']:.3f} p90={s['p90']:.3f} p95={s['p95']:.3f}"
         )
     print(f"  {'tokens':>20}: mean={statistics.fmean(tokens):.1f}")
+
+    if args.dataset:
+        by_label: dict[str, list[dict]] = {}
+        for result in results:
+            by_label.setdefault(result.get("label", ""), []).append(result)
+        print("per-label summary")
+        for label in sorted(by_label):
+            rs = by_label[label]
+            s = summarize([r["total_time"] for r in rs])
+            mean_tokens = statistics.fmean([r["tokens"] for r in rs])
+            print(
+                f"  {label:>10}: n={len(rs)} mean_total={s['mean']:.3f}s "
+                f"p50={s['p50']:.3f}s mean_tokens={mean_tokens:.1f}"
+            )
 
     if not args.no_save:
         summary = {

@@ -90,12 +90,14 @@ Add `--no-save` to print only and skip writing files.
 | Script | Flag | Default | Meaning |
 |---|---|---|---|
 | all | `--no-save` | off | skip writing JSON/CSV results |
-| all | `--prompt` | one-sentence explanation | user prompt to send |
-| all | `--max-tokens` | 128 | `max_tokens` per request |
+| all | `--prompt` | one-sentence explanation | user prompt to send (ignored with `--dataset`) |
+| all | `--max-tokens` | 128 | `max_tokens` per request (fallback when a dataset entry omits it) |
+| all | `--dataset` | none | load requests from `benchmarks/datasets/<name>.json` (see [07 - Continuous Batching Demo](07-continuous-batching-demo.md)) |
 | all | `--thinking` | `auto` | `chat_template_kwargs.enable_thinking`: `on`/`off` forces it, `auto` sends nothing |
 | all | `--timeout` | 0 | per-request timeout in seconds (`0` = no timeout; raise it for slow backends / long reasoning) |
-| `latency.py` | `--iterations` | 10 | number of requests to run |
-| `concurrency.py` | `--requests` | 8 | total requests to fire |
+| `single_request.py` | `--label` | none | with `--dataset`, only pick the request with this label (e.g. `short`) |
+| `latency.py` | `--iterations` | 10 | number of requests to run (cycles through the dataset) |
+| `concurrency.py` | `--requests` | 8 | total requests to fire (cycles through the dataset) |
 | `concurrency.py` | `--concurrency` | 4 | requests in parallel |
 
 ## 6. Reading the metrics

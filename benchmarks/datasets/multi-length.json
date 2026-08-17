@@ -1,0 +1,36 @@
+{
+  "name": "multi-length",
+  "description": "Mixed short and long requests to demonstrate the benefit of continuous batching (vLLM) over serialized serving (baseline FastAPI). Swap datasets by adding a new JSON here and passing --dataset <name>.",
+  "requests": [
+    {
+      "label": "short",
+      "prompt": "Hi.",
+      "max_tokens": 16
+    },
+    {
+      "label": "short",
+      "prompt": "Say OK.",
+      "max_tokens": 32
+    },
+    {
+      "label": "short",
+      "prompt": "What is 2+2?",
+      "max_tokens": 32
+    },
+    {
+      "label": "medium",
+      "prompt": "Explain in one sentence what an LLM serving engine does.",
+      "max_tokens": 128
+    },
+    {
+      "label": "medium",
+      "prompt": "List three benefits of using an OpenAI-compatible API for LLM serving.",
+      "max_tokens": 256
+    },
+    {
+      "label": "long",
+      "prompt": "Write a detailed essay explaining how continuous batching in an LLM serving engine such as vLLM improves GPU utilization compared with serialized serving. Cover token-level scheduling, how short and long requests share a batch, tail latency for short requests under load, and the practical difference you would observe when benchmarking the two approaches.",
+      "max_tokens": 1024
+    }
+  ]
+}
