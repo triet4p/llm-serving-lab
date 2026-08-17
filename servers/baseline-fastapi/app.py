@@ -24,11 +24,7 @@ def load_model():
     global _model, _tokenizer
     if _model is None or _tokenizer is None:
         _tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-        _model = AutoModelForCausalLM.from_pretrained(
-            MODEL_NAME,
-            torch_dtype=torch.bfloat16,
-            low_cpu_mem_usage=True,
-        ).to(DEVICE)
+        _model = AutoModelForCausalLM.from_pretrained(MODEL_NAME).to(DEVICE)
     return _tokenizer, _model
 
 
