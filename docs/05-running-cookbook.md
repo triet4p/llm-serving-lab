@@ -85,8 +85,27 @@ benchmarks work against it.
 ### 2.2 vLLM (GPU, primary backend)
 
 The main optimized serving engine (docs 04 §3). Requires a **Linux server with
-an NVIDIA GPU** and vLLM installed (`pip install vllm` or the vLLM Docker
-image). The developer machine only sends HTTP requests; it needs no GPU.
+an NVIDIA GPU** and vLLM installed. The developer machine only sends HTTP
+requests; it needs no GPU.
+
+**Install vLLM** (one-time, on the GPU server, into the project venv so
+`run.sh` finds it):
+
+```bash
+# on the GPU server
+cd ~/llm-serving-lab
+uv pip install --python .venv/bin/python vllm
+```
+
+Requirements:
+
+- Linux + NVIDIA GPU + a compatible NVIDIA driver (e.g. driver 580.x / CUDA 13).
+- A host compiler compatible with the CUDA toolkit: **CUDA 13 requires GCC ≤ 12**.
+  `run.sh` already routes nvcc/host compilers to `/usr/bin/gcc-12` when present.
+- Enough disk space for the vLLM package plus the model weights (~5-8 GB).
+- `huggingface_hub` for the pre-download step (a `transformers`/vLLM dependency).
+
+**Start** (the runner pre-downloads the model, then serves):
 
 ```bash
 # one-time: configure the server (model, host, port, tensor-parallel size)
@@ -105,7 +124,9 @@ vllm serve "$MODEL_NAME" --host 0.0.0.0 --port "$PORT" --tensor-parallel-size "$
 ```
 
 Endpoint: `http://<host>:8000/v1` (e.g. `POST /v1/chat/completions`,
-`GET /v1/models`).
+`GET /v1/models`). The **first start JIT-compiles kernels and can take a few
+minutes** before the API answers — poll `curl http://localhost:8000/v1/models`
+rather than assuming a crash.
 
 ### 2.3 Ollama (CPU, alternative backend)
 
@@ -312,3 +333,18 @@ source profiles/<backend>.env; set +a` loads the values for you.
   in §3.3).
 - **`uv run` is slow the first time** — it resolves the script's inline
   dependencies once; subsequent runs reuse the cached environment.
+- **vLLM: engine init fails with `unsupported GNU version` / `_Float32 is undefined`**
+  — CUDA 13's nvcc rejects host GCC newer than 12 while flashinfer JIT-compiles
+  its kernels at first start. `servers/vllm/run.sh` handles this by exporting
+  `CC=/usr/bin/gcc-12`, `CXX=/usr/bin/g++-12`, and
+  `NVCC_PREPEND_FLAGS="-ccbin=/usr/bin/g++-12"`. If you run `vllm serve`
+  manually on a CUDA 13 box, export those three variables yourself. (`-allow-unsupported-compiler`
+  alone is not enough.)
+- **vLLM: API is not answering right after launch** — the first start
+  JIT-compiles flashinfer ops and can take minutes; poll
+  `curl http://localhost:8000/v1/models` before concluding it crashed.
+- **`pip install vllm` fails / disk full** — vLLM plus model weights need
+  several GB; check with `df -h /` and free space first. Installing vLLM into
+  the shared project venv also pins its `torch` version, which the baseline
+  backend shares — keep the two in one venv or use separate environments if a
+  torch conflict arises.
