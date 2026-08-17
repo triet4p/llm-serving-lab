@@ -74,9 +74,9 @@ PORT=9090 HOST=0.0.0.0 bash servers/baseline-fastapi/run.sh
 
 Endpoint on the GPU server: `http://0.0.0.0:8080/v1`; clients on the developer
 machine reach it at `http://192.168.30.244:8080/v1` (per `profiles/baseline.env`).
-The baseline implements **only** `POST /v1/chat/completions` (non-streaming) —
-no `/v1/models`, no streaming, so the streaming benchmarks are not usable
-against it.
+The baseline implements **only** `POST /v1/chat/completions` (no `/v1/models`),
+in both non-streaming and streaming (`stream: true`, SSE) forms — so all three
+benchmarks work against it.
 
 ### 2.2 vLLM (GPU, primary backend)
 
@@ -216,8 +216,8 @@ Every run writes `<name>_<timestamp>.json` and `.csv` into
 `benchmarks/results/` (gitignored). Add `--no-save` to print only; `--help`
 lists every option.
 
-> The streaming benchmarks need a backend that supports `stream: true`.
-> vLLM and Ollama do; the baseline FastAPI server does not.
+> The streaming benchmarks need a backend that supports `stream: true`. All
+> three backends (vLLM, Ollama, baseline FastAPI) now do.
 
 ---
 
@@ -277,10 +277,9 @@ uv run benchmarks/concurrency.py --requests 16 --concurrency 4
 
 To switch to another backend, re-export `OPENAI_BASE_URL` (and `MODEL_NAME` if
 the backend uses a different tag, e.g. Ollama's `qwen3:8b`): vLLM → port
-`8000`, Ollama → port `11434`, baseline → port `8080`. The same clients work
-unchanged; only the streaming benchmarks do not work against the baseline
-(which is non-streaming). In bash, `set -a; source profiles/<backend>.env;
-set +a` loads the values for you.
+`8000`, Ollama → port `11434`, baseline → port `8080`. The same clients and
+benchmarks work unchanged against all three backends. In bash, `set -a;
+source profiles/<backend>.env; set +a` loads the values for you.
 
 ---
 

@@ -17,8 +17,8 @@ def test_temperature_read_from_request_body():
 
 
 def test_generate_uses_max_tokens():
-    assert "max_new_tokens=request.max_tokens" in app_text()
+    assert '"max_new_tokens": request.max_tokens' in app_text()
 
 
 def test_generate_uses_temperature():
-    assert "temperature=request.temperature" in app_text()
+    assert '"temperature": request.temperature' in app_text()
