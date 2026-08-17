@@ -19,3 +19,23 @@
 **Fix / workaround:** Update `docs/PLAN.md` in the same pass as marking sprint tasks done: tick the matching milestone `- [x]`, flip the sprint's status from "Not Started" to "Complete" in Active Sprints, and add it to the Completed Sprints list.
 
 **Watch out for:** Sprint completion is a two-file change. After finishing the last atomic task of any sprint, always update `docs/PLAN.md` (milestone + status + completed list) alongside `docs/sprint-plans/sprint-<n>.md`, and mention PLAN.md in the commit message (e.g. `docs: mark sprint <n> complete`).
+
+## [2026-08-17] End the benchmark server process after each SSH benchmark run
+
+**Symptom:** After benchmarking the baseline FastAPI server (started via SSH), the uvicorn process stayed alive holding the GPU model in memory; the next backend's benchmark would then contend for GPU memory, or an accidental warm-up request would re-trigger a slow model load in the wrong server instance.
+
+**Root cause:** A server started in the background with `nohup ... &` keeps running after the SSH session ends. Each benchmark cycle leaves a stale serving process behind unless it is explicitly killed.
+
+**Fix / workaround:** After running each benchmark, kill the server process on the GPU server, e.g. `pkill -f '[u]vicorn app:app'` (the `[u]` bracket avoids `pkill` matching its own invoking shell). Verify with `ss -tlnp | grep <port>` that the port is free before starting the next backend.
+
+**Watch out for:** Any benchmark/demo cycle that starts a server over SSH. Leaving the previous backend running is the default, not the exception; make "stop the server" an explicit step between backends.
+
+## [2026-08-17] vLLM engine init fails on CUDA 13 + GCC > 12 (flashinfer JIT)
+
+**Symptom:** `vllm serve` aborted during engine init with `RuntimeError: Engine core initialization failed`; the log showed `error: -- unsupported GNU version! gcc versions later than 12 are not supported!` and, after bypassing that, `identifier "_Float32" is undefined`, from a `ninja` build of `flashinfer/data/csrc/renorm.cu`.
+
+**Root cause:** The server's CUDA 13.0 nvcc only supports host GCC <= 12, but the default is GCC 13.2 (Ubuntu). vLLM triggers flashinfer's runtime JIT kernel build on first start, which invokes nvcc against the new headers and fails.
+
+**Fix / workaround:** In `servers/vllm/run.sh`, route the host compilers to GCC 12 before launching: `export CC=/usr/bin/gcc-12`, `export CXX=/usr/bin/g++-12`, `export NVCC_PREPEND_FLAGS="-ccbin=/usr/bin/g++-12"`. `-allow-unsupported-compiler` alone is NOT enough — the compile still fails on `_Float32`.
+
+**Watch out for:** Any machine with CUDA 13.x whose default GCC is newer than 12. First vLLM start JIT-compiles flashinfer ops and can take several minutes before the API is ready; poll `/v1/models`, don't assume a crash.
