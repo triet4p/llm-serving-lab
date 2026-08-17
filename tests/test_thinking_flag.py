@@ -26,6 +26,14 @@ def test_benchmarks_offer_configurable_timeout():
         assert "timeout or None" in text
 
 
+def test_benchmarks_offer_configurable_output_dir():
+    for script in SCRIPTS:
+        text = script.read_text(encoding="utf-8")
+        assert "--output-dir" in text
+        assert "Path(output_dir)" in text
+        assert "args.output_dir" in text
+
+
 def test_benchmarks_send_chat_template_kwargs_only_when_forced():
     for script in SCRIPTS:
         text = script.read_text(encoding="utf-8")

@@ -119,9 +119,15 @@ async def run_batch(
     return list(await asyncio.gather(*(bounded(p) for p in payloads)))
 
 
-def save_results(script_name: str, summary: dict, rows: list[dict]) -> tuple[Path, Path]:
-    """Write JSON + CSV results into benchmarks/results/ and return their paths."""
-    results_dir = Path(__file__).resolve().parent / "results"
+def save_results(
+    script_name: str, summary: dict, rows: list[dict], output_dir: str | None = None
+) -> tuple[Path, Path]:
+    """Write JSON + CSV results into the output dir and return their paths."""
+    results_dir = (
+        Path(output_dir)
+        if output_dir
+        else Path(__file__).resolve().parent / "results"
+    )
     results_dir.mkdir(parents=True, exist_ok=True)
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     base = results_dir / f"{script_name}_{timestamp}"
@@ -166,6 +172,11 @@ def main() -> None:
         type=int,
         default=0,
         help="per-request timeout in seconds (0 = no timeout)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="directory to write JSON/CSV results into (default: benchmarks/results/)",
     )
     parser.add_argument(
         "--no-save",
@@ -255,7 +266,7 @@ def main() -> None:
             "latency_mean_s": statistics.fmean(latencies),
             "latency_max_s": max(latencies),
         }
-        json_path, csv_path = save_results("concurrency", summary, results)
+        json_path, csv_path = save_results("concurrency", summary, results, args.output_dir)
         print(f"saved:  {json_path}")
         print(f"saved:  {csv_path}")
 
