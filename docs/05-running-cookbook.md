@@ -6,10 +6,12 @@ or benchmarks at it (client side), and verify everything works. Every piece is
 or the baseline FastAPI server because all of them speak an OpenAI-compatible
 API (docs 02 §6, docs 03 §2.5).
 
-## 1. The configuration contract
+## 1. When do you need environment variables?
 
-Servers, clients, and benchmarks all read the same three environment
-variables:
+**Only on the client side.** The three variables below are what clients and
+benchmarks read from the shell. The **servers do not need them** — each server
+runner (`servers/*/run.sh`) sources its own config internally, so you just run
+the script directly (section 2).
 
 | Variable | Meaning |
 |---|---|
@@ -17,14 +19,9 @@ variables:
 | `OPENAI_API_KEY` | API key (self-hosted backends usually accept any value, e.g. `demo`) |
 | `MODEL_NAME` | Model served by the selected backend |
 
-Sources, in increasing precedence:
-
-1. `configs/models.env` — default model (the fallback `MODEL_NAME`).
-2. `profiles/<backend>.env` — a complete per-backend set of all three vars.
-3. Your shell / `.env` — anything you export wins.
-
-**To point everything at a backend**, export the three variables (or source a
-profile):
+Ready-made per-backend sets live in `profiles/<backend>.env` (they point at the
+GPU server host). **On the developer machine**, load the profile for the
+backend you want to talk to:
 
 ```bash
 # pick a backend profile (bash)
@@ -50,6 +47,9 @@ $env:MODEL_NAME      = "Qwen/Qwen3.5-2B"
 ---
 
 ## 2. Server side: running a backend
+
+**No environment setup required.** Each runner sources its own profile and
+config internally (bind host, port, model) — you only run one command.
 
 ### 2.1 Baseline FastAPI (educational)
 
@@ -145,8 +145,9 @@ Endpoint: `http://<host>:11434/v1` (e.g. `POST /v1/chat/completions`,
 
 ## 3. Client side: consuming a backend
 
-All clients read the env contract from section 1. Set the three variables (or
-source a profile), then run any client unchanged against any backend.
+All clients read the env contract from section 1. In the shell where you run a
+client, source the matching profile (or export the three vars), then run any
+client unchanged against any backend.
 
 ### 3.1 Raw HTTP with curl (`clients/raw-http/`)
 
@@ -196,8 +197,9 @@ common denominator across all three backends.
 ## 4. Benchmarks (`benchmarks/`)
 
 Lightweight, backend-neutral benchmarks (docs 04 §9; not a scientific study,
-docs 03 §2.6). Run with `uv run`; deps are resolved per script. Set the same
-three env vars as for clients.
+docs 03 §2.6). They are **clients**: like the clients above, they need the env
+contract in the shell — source a profile first. Run with `uv run`; deps are
+resolved per script.
 
 ```bash
 # single request: total latency, time-to-first-token, generation time, tokens
@@ -223,14 +225,11 @@ lists every option.
 
 ### 5.1 Against a server backend (vLLM or Ollama)
 
-The profiles already point at the server host, so sourcing one is enough — no
-manual env exports needed.
-
 ```bash
-# 1. start the backend (on the server box)
+# 1. start the backend (on the server box) — no env setup needed
 bash servers/vllm/run.sh              # or bash servers/ollama/run.sh
 
-# 2. on the developer machine, load the matching profile
+# 2. on the developer machine, load the matching profile (client side)
 set -a; source profiles/vllm.env; set +a
 
 # 3. verify it is up (uses the profile's OPENAI_BASE_URL)
@@ -243,21 +242,32 @@ uv run benchmarks/single_request.py
 
 ### 5.2 Against the remote GPU server
 
-Your real setup: a GPU box at `192.168.30.244` running both the vLLM backend
-**and** the baseline FastAPI server (the baseline must live on the GPU server
-because it loads the model with Transformers + torch). Model
-`Qwen/Qwen3.5-2B`. Only the three variables differ — the rest of the commands
-are identical.
+Your real setup: a GPU box at `192.168.30.244` running all three backends —
+vLLM, Ollama, and the baseline FastAPI (the baseline must live on the GPU
+server because it loads the model with Transformers + torch). Model
+`Qwen/Qwen3.5-2B`. The client env contract is the only thing that differs per
+backend; every other command is identical.
+
+On the server box, start a backend directly (no env setup):
+
+```bash
+# on the GPU server
+bash servers/vllm/run.sh              # vLLM  -> port 8000
+bash servers/ollama/run.sh            # Ollama -> port 11434
+bash servers/baseline-fastapi/run.sh  # baseline -> port 8080
+```
+
+On the developer machine, set the env contract for the backend you want, then
+consume/benchmark it:
 
 ```powershell
-# PowerShell (client machine)
-# vLLM
-$env:OPENAI_BASE_URL = "http://192.168.30.244:<PORT>/v1"   # <PORT> = vLLM port
+# PowerShell (client machine) — values from profiles/vllm.env
+$env:OPENAI_BASE_URL = "http://192.168.30.244:8000/v1"
 $env:OPENAI_API_KEY  = "demo"
 $env:MODEL_NAME      = "Qwen/Qwen3.5-2B"
 
 # verify reachability
-curl http://192.168.30.244:<PORT>/v1/models
+curl $env:OPENAI_BASE_URL/models
 
 # consume + benchmark
 uv run clients/openai-sdk/chat_completions.py
@@ -265,13 +275,12 @@ uv run benchmarks/latency.py --iterations 10
 uv run benchmarks/concurrency.py --requests 16 --concurrency 4
 ```
 
-To switch to the baseline running on the same GPU server, re-export:
-
-```powershell
-$env:OPENAI_BASE_URL = "http://192.168.30.244:8080/v1"     # baseline FastAPI
-# then the same clients work unchanged; only streaming benchmarks do not
-# (the baseline is non-streaming)
-```
+To switch to another backend, re-export `OPENAI_BASE_URL` (and `MODEL_NAME` if
+the backend uses a different tag, e.g. Ollama's `qwen3:8b`): vLLM → port
+`8000`, Ollama → port `11434`, baseline → port `8080`. The same clients work
+unchanged; only the streaming benchmarks do not work against the baseline
+(which is non-streaming). In bash, `set -a; source profiles/<backend>.env;
+set +a` loads the values for you.
 
 ---
 
