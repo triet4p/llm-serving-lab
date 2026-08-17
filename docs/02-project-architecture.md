@@ -277,13 +277,18 @@ Developer Laptop
       |
       v
 GPU Server
-+----------------------+
-| vLLM / Ollama        |
-|                      |
-| LLM                  |
-| GPU                  |
-+----------------------+
++------------------------------+
+| vLLM / Ollama                |
+| baseline-fastapi (FastAPI)   |
+|                              |
+| LLM                          |
+| GPU                          |
++------------------------------+
 ```
+
+The baseline FastAPI server runs on the GPU server as well: it loads the model
+with Hugging Face Transformers + torch, so it needs the same GPU box that
+serves vLLM (not the developer machine).
 
 This setup demonstrates that the inference server is a network service rather than simply a local Python library.
 

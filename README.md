@@ -6,7 +6,10 @@ The project separates **model serving** from **model consumption**: the same cli
 
 ## Status
 
-Sprint 1 (scaffolding) is complete: repository layout, configuration profiles, environment template, and Makefile convenience commands are in place. Serving backends (Sprint 2-4), the client layer (Sprint 5), and benchmarks (Sprint 6) follow.
+Sprints 1-6 are complete: repository scaffolding, the serving backends
+(baseline FastAPI, vLLM, Ollama), the client layer (raw-http + OpenAI SDK),
+and the benchmarks. See [05 - Running Cookbook](docs/05-running-cookbook.md)
+for how to start a server and consume it with the clients.
 
 ## Prerequisites
 
@@ -58,4 +61,5 @@ uv run pytest -v
 - [02 - Project Architecture](docs/02-project-architecture.md)
 - [03 - Project Scope](docs/03-project-scope.md)
 - [04 - Technical Stack](docs/04-project-technical-stack.md)
+- [05 - Running Cookbook](docs/05-running-cookbook.md)
 - [Global Project Plan](docs/PLAN.md)
