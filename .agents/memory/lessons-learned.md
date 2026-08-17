@@ -39,3 +39,13 @@
 **Fix / workaround:** In `servers/vllm/run.sh`, route the host compilers to GCC 12 before launching: `export CC=/usr/bin/gcc-12`, `export CXX=/usr/bin/g++-12`, `export NVCC_PREPEND_FLAGS="-ccbin=/usr/bin/g++-12"`. `-allow-unsupported-compiler` alone is NOT enough — the compile still fails on `_Float32`.
 
 **Watch out for:** Any machine with CUDA 13.x whose default GCC is newer than 12. First vLLM start JIT-compiles flashinfer ops and can take several minutes before the API is ready; poll `/v1/models`, don't assume a crash.
+
+## [2026-08-17] Reasoning models stream `reasoning` deltas, not `content`
+
+**Symptom:** `benchmarks/single_request.py` against Ollama's `qwen3.5:2b` reported 0 tokens and generation time 0.000s while the raw curl clearly showed streaming output.
+
+**Root cause:** `qwen3.5:2b` is a reasoning model: Ollama streams its thinking in `choices[0].delta.reasoning` with `content` empty, and only later switches to `content`. The benchmark parser counted only `delta.content`, so every reasoning chunk was skipped (TTFT == total latency, tokens == 0). vLLM/HF expose the same field as `reasoning_content`.
+
+**Fix / workaround:** In all three benchmark SSE parsers (`benchmarks/single_request.py`, `latency.py`, `concurrency.py`), count a token when any of `content`, `reasoning`, or `reasoning_content` is non-empty: `text = delta.get("content") or delta.get("reasoning") or delta.get("reasoning_content") or ""`.
+
+**Watch out for:** Any reasoning-capable model (Qwen3/3.5, DeepSeek-R1, etc.) on any backend. Token counts then include thinking tokens — that is the real generation throughput, but it makes cross-backend token totals differ if only one backend enables thinking.
