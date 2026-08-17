@@ -36,14 +36,16 @@ class ChatCompletionRequest(BaseModel):
     max_tokens: int = 128
     temperature: float = 0.7
     stream: bool = False
+    chat_template_kwargs: dict | None = None
 
 
 def _prepare_inputs(tokenizer, request):
     messages = [message.model_dump() for message in request.messages]
-    inputs = tokenizer.apply_chat_template(
+    return tokenizer.apply_chat_template(
         messages,
         add_generation_prompt=True,
         return_tensors="pt",
+        chat_template_kwargs=request.chat_template_kwargs or None,
     )
     if not hasattr(inputs, "input_ids") and not isinstance(inputs, dict):
         inputs = {"input_ids": inputs}

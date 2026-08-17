@@ -149,6 +149,12 @@ def main() -> None:
     )
     parser.add_argument("--max-tokens", type=int, default=128, help="max_tokens for each request")
     parser.add_argument(
+        "--thinking",
+        choices=["auto", "on", "off"],
+        default="auto",
+        help="send chat_template_kwargs enable_thinking (on/off) or none (auto)",
+    )
+    parser.add_argument(
         "--no-save",
         action="store_true",
         help="skip writing JSON/CSV results to benchmarks/results/",
@@ -177,6 +183,8 @@ def main() -> None:
         "temperature": 0.7,
         "stream": True,
     }
+    if args.thinking != "auto":
+        payload["chat_template_kwargs"] = {"enable_thinking": args.thinking == "on"}
 
     results = []
     with httpx.Client(timeout=120.0) as client:
