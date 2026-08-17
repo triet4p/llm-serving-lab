@@ -40,11 +40,14 @@ class ChatCompletionRequest(BaseModel):
 
 def _prepare_inputs(tokenizer, request):
     messages = [message.model_dump() for message in request.messages]
-    return tokenizer.apply_chat_template(
+    inputs = tokenizer.apply_chat_template(
         messages,
         add_generation_prompt=True,
         return_tensors="pt",
     )
+    if not hasattr(inputs, "input_ids") and not isinstance(inputs, dict):
+        inputs = {"input_ids": inputs}
+    return inputs
 
 
 def _generation_kwargs(request) -> dict:
@@ -65,8 +68,8 @@ def chat_completions(request: ChatCompletionRequest):
 def _chat_completions(request: ChatCompletionRequest) -> dict:
     tokenizer, model = load_model()
     inputs = _prepare_inputs(tokenizer, request)
-    outputs = model.generate(inputs, **_generation_kwargs(request))
-    generated = outputs[0][inputs.shape[1] :]
+    outputs = model.generate(**inputs, **_generation_kwargs(request))
+    generated = outputs[0][inputs["input_ids"].shape[1] :]
     content = tokenizer.decode(generated, skip_special_tokens=True)
 
     return {
@@ -91,8 +94,8 @@ def _stream_chat_completions(request: ChatCompletionRequest) -> StreamingRespons
         tokenizer, skip_prompt=True, skip_special_tokens=True
     )
     kwargs = {
+        **inputs,
         **_generation_kwargs(request),
-        "inputs": inputs,
         "streamer": streamer,
     }
     thread = threading.Thread(target=model.generate, kwargs=kwargs)
