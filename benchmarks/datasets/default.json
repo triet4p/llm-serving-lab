@@ -5,7 +5,7 @@
     {
       "label": "default",
       "prompt": "Explain in one sentence what an LLM serving engine does.",
-      "max_tokens": 128
+      "max_tokens": 1024
     }
   ]
 }
