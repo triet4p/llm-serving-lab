@@ -19,7 +19,8 @@ env/
 !.env.example
 
 # Benchmark results
-benchmarks/results/
+benchmarks/results/*
+!benchmarks/results/.gitkeep
 
 # Editors / OS
 .idea/

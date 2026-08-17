@@ -1,0 +1,2 @@
+Benchmark run artifacts (single_request.json / latency.csv / concurrency.json ...) live here.
+This directory is intentionally gitignored; only the .gitkeep is tracked.
